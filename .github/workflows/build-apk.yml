@@ -39,4 +39,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: MyAI-apk
-          path: android/app/build/outputs/apk/release/*.apk
+          path: android/app/build/outputs/**/*.apk
