@@ -44,12 +44,14 @@ import {
   ModelsScreen,
   SettingsScreen,
   BenchmarkScreen,
+  BrowserScreen,
   AboutScreen,
 
   // Dev tools screen. Only available in debug mode.
   DevToolsScreen,
 } from './src/screens';
 import PalsScreen from './src/screens/PalsScreen';
+import {getBrowserStrings} from './src/screens/BrowserScreen/strings';
 import {OnboardingStack} from './src/screens/OnboardingScreens';
 
 // Check if app is in debug mode
@@ -164,6 +166,14 @@ const App = observer(() => {
                               headerRight: () => <ModelsHeaderRight />,
                               headerStyle: styles.headerWithoutDivider,
                               title: currentL10n.screenTitles.models,
+                            }}
+                          />
+                          <Drawer.Screen
+                            name={ROUTES.BROWSER}
+                            component={gestureHandlerRootHOC(BrowserScreen)}
+                            options={{
+                              headerStyle: styles.headerWithoutDivider,
+                              title: getBrowserStrings(uiStore.language).title,
                             }}
                           />
                           <Drawer.Screen

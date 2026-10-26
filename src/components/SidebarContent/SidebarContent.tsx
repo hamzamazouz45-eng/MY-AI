@@ -8,10 +8,11 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import {useTheme} from '../../hooks';
 import {createStyles} from './styles';
-import {chatSessionStore, SessionMetaData} from '../../store';
+import {chatSessionStore, SessionMetaData, uiStore} from '../../store';
 import {Menu, RenameModal, Checkbox} from '..';
 import {
   BenchmarkIcon,
+  BrowserIcon,
   ChatIcon,
   EditIcon,
   ModelIcon,
@@ -26,6 +27,7 @@ import {L10nContext} from '../../utils';
 import {t} from '../../locales';
 import {ROUTES} from '../../utils/navigationConstants';
 import {exportChatSession} from '../../utils/exportUtils';
+import {getBrowserStrings} from '../../screens/BrowserScreen/strings';
 
 // Check if app is in debug mode
 const isDebugMode = __DEV__;
@@ -557,6 +559,13 @@ export const SidebarContent: React.FC<DrawerContentComponentProps> = observer(
               onPress={() => props.navigation.navigate(ROUTES.MODELS)}
               style={styles.menuDrawerItem}
               testID="drawer-item-models"
+            />
+            <Drawer.Item
+              label={getBrowserStrings(uiStore.language).title}
+              icon={() => <BrowserIcon stroke={theme.colors.primary} />}
+              onPress={() => props.navigation.navigate(ROUTES.BROWSER)}
+              style={styles.menuDrawerItem}
+              testID="drawer-item-browser"
             />
             <Drawer.Item
               label={l10n.components.sidebarContent.menuItems.benchmark}

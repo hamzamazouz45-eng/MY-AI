@@ -3,6 +3,7 @@ export const ROUTES = {
   // Main app routes
   CHAT: 'Chat',
   MODELS: 'Models',
+  BROWSER: 'Browser',
   PALS: 'Pals (experimental)',
   BENCHMARK: 'Benchmark',
   SETTINGS: 'Settings',
