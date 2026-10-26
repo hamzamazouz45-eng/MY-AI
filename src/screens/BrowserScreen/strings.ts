@@ -23,7 +23,7 @@ export interface BrowserStrings {
 const en: BrowserStrings = {
   title: 'Browser',
   newTab: 'New tab',
-  addressPlaceholder: 'Search or type a web address',
+  addressPlaceholder: 'Search or enter address',
   blankHint: 'Type an address above, or tap the sparkle for the assistant.',
   assistant: 'Assistant',
   close: 'Close',
@@ -61,7 +61,7 @@ const en: BrowserStrings = {
 const ar: BrowserStrings = {
   title: 'المتصفح',
   newTab: 'علامة تبويب جديدة',
-  addressPlaceholder: 'ابحث أو اكتب عنوان موقع',
+  addressPlaceholder: 'ابحث أو اكتب عنواناً',
   blankHint: 'اكتب عنواناً في الأعلى، أو اضغط ✦ لفتح المساعد.',
   assistant: 'المساعد',
   close: 'إغلاق',

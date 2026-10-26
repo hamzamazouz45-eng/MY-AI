@@ -2,11 +2,13 @@ import {StyleSheet} from 'react-native';
 
 import type {Theme} from '../../utils/types';
 
-export const createStyles = (theme: Theme) =>
+export const createStyles = (theme: Theme, insets: {bottom: number} = {bottom: 0}) =>
   StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,
+      // The app draws under the system navigation bar (edge-to-edge).
+      paddingBottom: insets.bottom,
     },
     row: {
       flexDirection: 'row',
@@ -65,7 +67,7 @@ export const createStyles = (theme: Theme) =>
       paddingHorizontal: 14,
       paddingVertical: 0,
       borderRadius: 19,
-      fontSize: 14,
+      fontSize: 13,
       color: theme.colors.onSurface,
       backgroundColor: theme.colors.background,
     },

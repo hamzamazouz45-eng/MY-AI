@@ -1,7 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -11,6 +9,7 @@ import {
 
 import {toJS} from 'mobx';
 import {observer} from 'mobx-react';
+import {KeyboardAvoidingView} from 'react-native-keyboard-controller';
 import {IconButton} from 'react-native-paper';
 
 import {useTheme} from '../../hooks';
@@ -172,7 +171,7 @@ export const BrowserAssistant: React.FC<Props> = observer(
     return (
       <KeyboardAvoidingView
         style={styles.assistant}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        behavior="padding">
         <View style={styles.assistantHeader}>
           <Text style={styles.assistantTitle}>{strings.assistant}</Text>
           <View style={styles.row}>

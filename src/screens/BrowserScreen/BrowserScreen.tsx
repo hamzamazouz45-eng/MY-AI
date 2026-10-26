@@ -12,6 +12,7 @@ import {
 import {observer} from 'mobx-react';
 import {IconButton, ProgressBar} from 'react-native-paper';
 import {useIsFocused} from '@react-navigation/native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {WebView} from 'react-native-webview';
 import type {WebViewMessageEvent} from 'react-native-webview';
 
@@ -38,7 +39,8 @@ const PAGE_READ_TIMEOUT_MS = 4000;
 
 export const BrowserScreen: React.FC = observer(() => {
   const theme = useTheme();
-  const styles = createStyles(theme);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(theme, insets);
   const strings = getBrowserStrings(uiStore.language);
   const isFocused = useIsFocused();
 
