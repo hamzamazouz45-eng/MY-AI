@@ -114,8 +114,9 @@ export const ASSISTANT_SAMPLING = {
   temperature: 0.5,
   top_k: 40,
   top_p: 0.9,
-  // The app default is 1.0 (off), which lets 3B models loop on repeated text.
-  penalty_repeat: 1.15,
+  // The app default is 1.0 (off). Keep this low: higher values break Arabic
+  // words, which are split into several tokens.
+  penalty_repeat: 1.05,
 };
 
 /** Adds the page (title, url, selection, truncated text) to the system prompt. */

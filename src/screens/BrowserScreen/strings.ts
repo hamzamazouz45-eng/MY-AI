@@ -18,6 +18,11 @@ export interface BrowserStrings {
   busy: string;
   error: string;
   contextFull: string;
+  webSearch: string;
+  searching: string;
+  reading: string;
+  noResults: string;
+  sources: string;
   chips: {label: string; prompt: string}[];
 }
 
@@ -40,6 +45,12 @@ const en: BrowserStrings = {
   error: 'Something went wrong:',
   contextFull:
     'This page is too long for the model context window. Open Models, increase the model context size in its settings (4096 or more), reload the model, then try again.',
+  webSearch: 'Search the web (sends your question to DuckDuckGo)',
+  searching: 'Searching the web...',
+  reading: 'Reading the top results...',
+  noResults:
+    'No search results. The search page may have changed or blocked the request. Try again, or open a search in a tab and use "current page as context".',
+  sources: 'Sources',
   chips: [
     {
       label: 'Summarize',
@@ -80,6 +91,12 @@ const ar: BrowserStrings = {
   error: 'حدث خطأ:',
   contextFull:
     'الصفحة أطول مما تتسع له نافذة سياق النموذج. افتح «Models» وارفع حجم السياق (Context size) في إعدادات النموذج إلى 4096 أو أكثر، ثم أعد تحميل النموذج وجرّب مجدداً.',
+  webSearch: 'البحث في الإنترنت (يرسل سؤالك إلى DuckDuckGo)',
+  searching: 'جاري البحث في الإنترنت...',
+  reading: 'جاري قراءة أهم النتائج...',
+  noResults:
+    'لا توجد نتائج بحث. قد تكون صفحة البحث تغيّرت أو حجبت الطلب. حاول مجدداً، أو افتح البحث في تبويب واستخدم «الصفحة الحالية كسياق».',
+  sources: 'المصادر',
   chips: [
     {label: 'تلخيص الصفحة', prompt: 'لخّص هذه الصفحة في نقاط واضحة ومختصرة.'},
     {

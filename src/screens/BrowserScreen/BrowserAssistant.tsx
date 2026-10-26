@@ -28,6 +28,8 @@ import {
   trimHistory,
 } from './browserUtils';
 import type {BrowserStrings} from './strings';
+import {buildWebSystemPrompt, formatSources, WebSource} from './webSearch';
+import {searchAndRead} from './webSearchClient';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -53,6 +55,7 @@ export const BrowserAssistant: React.FC<Props> = observer(
     const [input, setInput] = useState('');
     const [busy, setBusy] = useState(false);
     const [usePage, setUsePage] = useState(true);
+    const [webMode, setWebMode] = useState(false);
     const [notice, setNotice] = useState<string | null>(null);
 
     const leaseRef = useRef<GenerationLease | null>(null);
@@ -114,12 +117,37 @@ export const BrowserAssistant: React.FC<Props> = observer(
         lease.signal.addEventListener('abort', onAbort, {once: true});
 
         try {
-          const page = usePage && hasPage ? await getPage() : null;
-          const system = buildSystemPrompt(
-            DEFAULT_SYSTEM_PROMPT,
-            page,
-            budget.pageChars,
-          );
+          let system: string;
+          let sources: WebSource[] = [];
+          if (webMode) {
+            patchLast({content: strings.searching});
+            sources = await searchAndRead(question.slice(0, 200), {
+              // Small context windows only fit a couple of pages.
+              count: budget.pageChars >= 3000 ? 3 : 2,
+              signal: lease.signal,
+              onReading: () => patchLast({content: strings.reading}),
+            });
+            if (lease.signal.aborted) {
+              patchLast({content: ''});
+              return;
+            }
+            if (sources.length === 0) {
+              patchLast({content: strings.noResults, isError: true});
+              return;
+            }
+            system = buildWebSystemPrompt(
+              DEFAULT_SYSTEM_PROMPT,
+              sources,
+              budget.pageChars,
+            );
+          } else {
+            const page = usePage && hasPage ? await getPage() : null;
+            system = buildSystemPrompt(
+              DEFAULT_SYSTEM_PROMPT,
+              page,
+              budget.pageChars,
+            );
+          }
 
           let acc = '';
           const result = await lease.engine.completion(
@@ -141,10 +169,16 @@ export const BrowserAssistant: React.FC<Props> = observer(
               }
             },
           );
-          if (!acc) {
-            patchLast({content: (result.content ?? result.text ?? '').trim()});
-          }
+          const answer = acc || (result.content ?? result.text ?? '').trim();
+          patchLast({
+            content: answer + formatSources(sources, strings.sources),
+          });
         } catch (err) {
+          if (lease.signal.aborted) {
+            // Stopped by the user while searching: not an error.
+            patchLast({content: ''});
+            return;
+          }
           const message = err instanceof Error ? err.message : String(err);
           patchLast({
             content: isContextFullError(message)
@@ -160,7 +194,7 @@ export const BrowserAssistant: React.FC<Props> = observer(
           setBusy(false);
         }
       },
-      [messages, usePage, hasPage, getPage, patchLast, strings],
+      [messages, usePage, webMode, hasPage, getPage, patchLast, strings],
     );
 
     const onSend = () => {
@@ -251,9 +285,17 @@ export const BrowserAssistant: React.FC<Props> = observer(
 
         <TouchableOpacity
           style={styles.contextRow}
+          disabled={webMode}
           onPress={() => setUsePage(v => !v)}>
+          <Text style={[styles.contextText, webMode && styles.dimmed]}>
+            {usePage && !webMode ? '☑' : '☐'} {strings.usePage}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.contextRow}
+          onPress={() => setWebMode(v => !v)}>
           <Text style={styles.contextText}>
-            {usePage ? '☑' : '☐'} {strings.usePage}
+            {webMode ? '☑' : '☐'} {strings.webSearch}
           </Text>
         </TouchableOpacity>
 

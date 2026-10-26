@@ -192,6 +192,9 @@ export const createStyles = (theme: Theme, insets: {bottom: number} = {bottom: 0
       fontSize: 12.5,
       color: theme.colors.onSurfaceVariant,
     },
+    dimmed: {
+      opacity: 0.4,
+    },
     inputRow: {
       flexDirection: 'row',
       alignItems: 'flex-end',
