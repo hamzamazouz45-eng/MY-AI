@@ -112,6 +112,66 @@ export function buildSystemPrompt(
   return out;
 }
 
+/** Rough size of text in tokens; deliberately pessimistic for Arabic/CJK. */
+export const CHARS_PER_TOKEN = 2;
+/** System prompt wording + the question + chat-template markers. */
+export const PROMPT_OVERHEAD_TOKENS = 350;
+const FALLBACK_CONTEXT = 2048;
+
+export interface ContextBudget {
+  /** Tokens the model may generate. */
+  nPredict: number;
+  /** Max characters of page text to send. */
+  pageChars: number;
+  /** Max characters of earlier chat turns to keep. */
+  historyChars: number;
+}
+
+/**
+ * Splits the model's context window between the answer, earlier turns and the
+ * page text, so the request always fits ("Context is full" otherwise).
+ */
+export function computeBudget(nCtx: number): ContextBudget {
+  const n =
+    Number.isFinite(nCtx) && nCtx >= 512 ? Math.floor(nCtx) : FALLBACK_CONTEXT;
+  const nPredict = Math.max(128, Math.min(1024, Math.floor(n * 0.25)));
+  const historyTokens = Math.floor(n * 0.2);
+  const pageTokens = Math.max(
+    200,
+    n - nPredict - PROMPT_OVERHEAD_TOKENS - historyTokens,
+  );
+  return {
+    nPredict,
+    pageChars: pageTokens * CHARS_PER_TOKEN,
+    historyChars: historyTokens * CHARS_PER_TOKEN,
+  };
+}
+
+/** Keeps the newest turns that fit in maxChars, starting on a user turn. */
+export function trimHistory<T extends {role: string; content: string}>(
+  messages: T[],
+  maxChars: number,
+): T[] {
+  const kept: T[] = [];
+  let total = 0;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    total += messages[i].content.length;
+    if (total > maxChars) {
+      break;
+    }
+    kept.unshift(messages[i]);
+  }
+  while (kept.length > 0 && kept[0].role !== 'user') {
+    kept.shift();
+  }
+  return kept;
+}
+
+export const isContextFullError = (message: string): boolean =>
+  /context is full|exceed\w*.*context|context.*(exceed|too (long|large))/i.test(
+    message,
+  );
+
 export interface BrowserTab {
   id: number;
   /** What the WebView was first asked to load. Empty means a blank tab. */

@@ -20,9 +20,11 @@ import {stopQuietly} from '../../utils/stopQuietly';
 import {createStyles} from './styles';
 import {
   buildSystemPrompt,
-  DEFAULT_MAX_PAGE_CHARS,
+  computeBudget,
   DEFAULT_SYSTEM_PROMPT,
+  isContextFullError,
   PageSnapshot,
+  trimHistory,
 } from './browserUtils';
 import type {BrowserStrings} from './strings';
 
@@ -94,9 +96,13 @@ export const BrowserAssistant: React.FC<Props> = observer(
         setBusy(true);
         setNotice(null);
 
-        const prior = messages
-          .filter(m => !m.isError && m.content.trim().length > 0)
-          .map(m => ({role: m.role, content: m.content}));
+        const budget = computeBudget(modelStore.contextInitParams.n_ctx);
+        const prior = trimHistory(
+          messages
+            .filter(m => !m.isError && m.content.trim().length > 0)
+            .map(m => ({role: m.role, content: m.content})),
+          budget.historyChars,
+        );
         setMessages(prev => [
           ...prev,
           {role: 'user', content: question},
@@ -111,7 +117,7 @@ export const BrowserAssistant: React.FC<Props> = observer(
           const system = buildSystemPrompt(
             DEFAULT_SYSTEM_PROMPT,
             page,
-            DEFAULT_MAX_PAGE_CHARS,
+            budget.pageChars,
           );
 
           let acc = '';
@@ -123,7 +129,7 @@ export const BrowserAssistant: React.FC<Props> = observer(
                 {role: 'user', content: question},
               ],
               temperature: 0.7,
-              n_predict: 1024,
+              n_predict: budget.nPredict,
               stop: toJS(modelStore.activeModel?.stopWords),
               enable_thinking: false,
             },
@@ -139,7 +145,12 @@ export const BrowserAssistant: React.FC<Props> = observer(
           }
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
-          patchLast({content: `${strings.error} ${message}`, isError: true});
+          patchLast({
+            content: isContextFullError(message)
+              ? strings.contextFull
+              : `${strings.error} ${message}`,
+            isError: true,
+          });
         } finally {
           lease.signal.removeEventListener('abort', onAbort);
           lease.end();

@@ -1,13 +1,18 @@
 import {
   buildSystemPrompt,
+  computeBudget,
   createTab,
   DEFAULT_SEARCH_URL,
+  isContextFullError,
   isInternalScheme,
   isWebUrl,
   nextActiveAfterClose,
   parsePageMessage,
   tabLabel,
   toUrl,
+  trimHistory,
+  PROMPT_OVERHEAD_TOKENS,
+  CHARS_PER_TOKEN,
 } from '../browserUtils';
 import {getBrowserStrings} from '../strings';
 
@@ -148,5 +153,62 @@ describe('getBrowserStrings', () => {
     expect(getBrowserStrings('ar').title).toBe('المتصفح');
     expect(getBrowserStrings('fr').title).toBe('Browser');
     expect(getBrowserStrings('en').chips).toHaveLength(4);
+  });
+});
+
+describe('computeBudget', () => {
+  it.each([1024, 2048, 4096, 8192, 32768])(
+    'fits everything inside a %i-token context',
+    n => {
+      const b = computeBudget(n);
+      const total =
+        b.nPredict +
+        PROMPT_OVERHEAD_TOKENS +
+        (b.pageChars + b.historyChars) / CHARS_PER_TOKEN;
+      expect(total).toBeLessThanOrEqual(Math.max(n, 1200));
+      expect(b.nPredict).toBeGreaterThanOrEqual(128);
+      expect(b.nPredict).toBeLessThanOrEqual(1024);
+    },
+  );
+
+  it('falls back to 2048 for invalid sizes', () => {
+    expect(computeBudget(NaN)).toEqual(computeBudget(2048));
+    expect(computeBudget(0)).toEqual(computeBudget(2048));
+  });
+
+  it('gives bigger contexts more page text', () => {
+    expect(computeBudget(8192).pageChars).toBeGreaterThan(
+      computeBudget(2048).pageChars,
+    );
+  });
+});
+
+describe('trimHistory', () => {
+  const msgs = [
+    {role: 'user', content: 'a'.repeat(10)},
+    {role: 'assistant', content: 'b'.repeat(10)},
+    {role: 'user', content: 'c'.repeat(10)},
+    {role: 'assistant', content: 'd'.repeat(10)},
+  ];
+
+  it('keeps everything when it fits', () => {
+    expect(trimHistory(msgs, 100)).toHaveLength(4);
+  });
+
+  it('drops the oldest turns and never starts on an assistant turn', () => {
+    const out = trimHistory(msgs, 30); // fits d, c, b -> starts on b -> drop b
+    expect(out.map(m => m.content[0])).toEqual(['c', 'd']);
+  });
+
+  it('can return nothing', () => {
+    expect(trimHistory(msgs, 5)).toEqual([]);
+  });
+});
+
+describe('isContextFullError', () => {
+  it('recognises the engine message', () => {
+    expect(isContextFullError('Context is full')).toBe(true);
+    expect(isContextFullError('prompt exceeds context size')).toBe(true);
+    expect(isContextFullError('network down')).toBe(false);
   });
 });

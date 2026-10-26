@@ -17,6 +17,7 @@ export interface BrowserStrings {
   noModel: string;
   busy: string;
   error: string;
+  contextFull: string;
   chips: {label: string; prompt: string}[];
 }
 
@@ -37,6 +38,8 @@ const en: BrowserStrings = {
   noModel: 'No model is loaded. Open Models, download one and load it first.',
   busy: 'The model is busy with another request. Try again in a moment.',
   error: 'Something went wrong:',
+  contextFull:
+    'This page is too long for the model context window. Open Models, increase the model context size in its settings (4096 or more), reload the model, then try again.',
   chips: [
     {
       label: 'Summarize',
@@ -75,6 +78,8 @@ const ar: BrowserStrings = {
   noModel: 'لا يوجد نموذج محمّل. افتح «Models» ونزّل نموذجاً ثم حمّله أولاً.',
   busy: 'النموذج مشغول بطلب آخر. حاول بعد قليل.',
   error: 'حدث خطأ:',
+  contextFull:
+    'الصفحة أطول مما تتسع له نافذة سياق النموذج. افتح «Models» وارفع حجم السياق (Context size) في إعدادات النموذج إلى 4096 أو أكثر، ثم أعد تحميل النموذج وجرّب مجدداً.',
   chips: [
     {label: 'تلخيص الصفحة', prompt: 'لخّص هذه الصفحة في نقاط واضحة ومختصرة.'},
     {
