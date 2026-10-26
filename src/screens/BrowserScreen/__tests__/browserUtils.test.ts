@@ -1,5 +1,7 @@
 import {
+  ASSISTANT_SAMPLING,
   buildSystemPrompt,
+  cleanPageText,
   computeBudget,
   createTab,
   DEFAULT_SEARCH_URL,
@@ -210,5 +212,33 @@ describe('isContextFullError', () => {
     expect(isContextFullError('Context is full')).toBe(true);
     expect(isContextFullError('prompt exceeds context size')).toBe(true);
     expect(isContextFullError('network down')).toBe(false);
+  });
+});
+
+describe('cleanPageText', () => {
+  it('drops blank lines and exact duplicates, collapses spaces', () => {
+    const input = 'Brand:   BMW\n\nBrand: BMW\nModel: 7 Series\n  \nBrand: BMW\nx';
+    expect(cleanPageText(input)).toBe('Brand: BMW\nModel: 7 Series');
+  });
+
+  it('caps very long lines', () => {
+    expect(cleanPageText('a'.repeat(1000)).length).toBe(400);
+  });
+
+  it('is used when building the prompt', () => {
+    const page = {
+      title: 'Cars',
+      url: 'https://a.b',
+      text: 'Brand: BMW\nBrand: BMW\nBrand: BMW',
+      selection: '',
+    };
+    const out = buildSystemPrompt('base', page, 1000);
+    expect(out.match(/Brand: BMW/g)).toHaveLength(1);
+  });
+});
+
+describe('ASSISTANT_SAMPLING', () => {
+  it('penalises repetition', () => {
+    expect(ASSISTANT_SAMPLING.penalty_repeat).toBeGreaterThan(1);
   });
 });

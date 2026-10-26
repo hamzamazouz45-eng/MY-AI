@@ -88,6 +88,36 @@ export function parsePageMessage(raw: string): PageSnapshot | null {
   }
 }
 
+/**
+ * Page text is full of repeated lines (menus, "Brand: BMW" on every card...).
+ * Collapsing whitespace and exact duplicates leaves room for real content in
+ * a small context window and stops the model from echoing the repetition.
+ */
+export function cleanPageText(text: string): string {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.replace(/\s+/g, ' ').trim();
+    if (line.length < 2 || seen.has(line)) {
+      continue;
+    }
+    seen.add(line);
+    out.push(line.length > MAX_LINE_CHARS ? line.slice(0, MAX_LINE_CHARS) : line);
+  }
+  return out.join('\n');
+}
+
+const MAX_LINE_CHARS = 400;
+
+/** Sampler settings tuned for faithful summaries from small local models. */
+export const ASSISTANT_SAMPLING = {
+  temperature: 0.5,
+  top_k: 40,
+  top_p: 0.9,
+  // The app default is 1.0 (off), which lets 3B models loop on repeated text.
+  penalty_repeat: 1.15,
+};
+
 /** Adds the page (title, url, selection, truncated text) to the system prompt. */
 export function buildSystemPrompt(
   base: string,
@@ -97,7 +127,7 @@ export function buildSystemPrompt(
   if (!page) {
     return base;
   }
-  const text = page.text.trim();
+  const text = cleanPageText(page.text);
   const truncated = text.length > maxChars;
   let out = `${base}\n\n[Current page]\nTitle: ${page.title}\nURL: ${page.url}`;
   const selection = page.selection.trim().slice(0, maxChars);

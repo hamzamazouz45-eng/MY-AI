@@ -19,6 +19,7 @@ import {stopQuietly} from '../../utils/stopQuietly';
 
 import {createStyles} from './styles';
 import {
+  ASSISTANT_SAMPLING,
   buildSystemPrompt,
   computeBudget,
   DEFAULT_SYSTEM_PROMPT,
@@ -128,7 +129,7 @@ export const BrowserAssistant: React.FC<Props> = observer(
                 ...prior,
                 {role: 'user', content: question},
               ],
-              temperature: 0.7,
+              ...ASSISTANT_SAMPLING,
               n_predict: budget.nPredict,
               stop: toJS(modelStore.activeModel?.stopWords),
               enable_thinking: false,
